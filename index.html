@@ -1,28 +1,91 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>Hitung Gaji Anggota Borsin</title>
-  <style>
-    body { font-family: Arial; text-align: center; margin-top: 50px; }
-    input, button { padding: 10px; margin: 5px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Hitung Gaji Borsin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .login-box {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            width: 300px;
+            text-align: center;
+        }
+        h2 {
+            margin-bottom: 20px;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+        button {
+            background-color: #0078D7;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #005fa3;
+        }
+        .msg {
+            color: red;
+            font-size: 13px;
+        }
+    </style>
 </head>
 <body>
-  <h2>Hitung Gaji Anggota Borsin</h2>
-  <p>Masukkan jumlah hasil kerja:</p>
-  <input type="number" id="hasil" placeholder="Masukkan jumlah ulos">
-  <button onclick="hitungGaji()">Hitung Gaji</button>
-  <p id="hasilGaji"></p>
+    <div class="login-box">
+        <h2>Login Pengguna</h2>
+        <select id="role">
+            <option value="">Pilih Peran</option>
+            <option value="admin">Admin</option>
+            <option value="anggota">Anggota</option>
+            <option value="bos">Bos</option>
+        </select>
+        <input type="text" id="username" placeholder="Nama pengguna">
+        <input type="password" id="password" placeholder="Kata sandi">
+        <button onclick="login()">Masuk</button>
+        <p class="msg" id="message"></p>
+    </div>
 
-  <script>
-    function hitungGaji() {
-      let hasil = document.getElementById("hasil").value;
-      let gajiPerUlos = 25000;
-      let total = hasil * gajiPerUlos;
-      document.getElementById("hasilGaji").innerHTML = 
-        "Total Gaji: Rp " + total.toLocaleString("id-ID");
-    }
-  </script>
+    <script>
+        function login() {
+            const role = document.getElementById('role').value;
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const msg = document.getElementById('message');
+
+            if (!role || !username || !password) {
+                msg.textContent = "Semua kolom wajib diisi!";
+                return;
+            }
+
+            // Contoh login sederhana
+            if (role === "admin" && username === "admin" && password === "1234") {
+                window.location.href = "admin.html";
+            } else if (role === "anggota" && username === "anggota" && password === "1234") {
+                window.location.href = "anggota.html";
+            } else if (role === "bos" && username === "bos" && password === "1234") {
+                window.location.href = "bos.html";
+            } else {
+                msg.textContent = "Login gagal! Periksa kembali data Anda.";
+            }
+        }
+    </script>
 </body>
 </html>
