@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Hitung Gaji Anggota Borsin</title>
+  <style>
+    body { font-family: Arial; text-align: center; margin-top: 50px; }
+    input, button { padding: 10px; margin: 5px; }
+  </style>
+</head>
+<body>
+  <h2>Hitung Gaji Anggota Borsin</h2>
+  <p>Masukkan jumlah hasil kerja:</p>
+  <input type="number" id="hasil" placeholder="Masukkan jumlah ulos">
+  <button onclick="hitungGaji()">Hitung Gaji</button>
+  <p id="hasilGaji"></p>
+
+  <script>
+    function hitungGaji() {
+      let hasil = document.getElementById("hasil").value;
+      let gajiPerUlos = 25000;
+      let total = hasil * gajiPerUlos;
+      document.getElementById("hasilGaji").innerHTML = 
+        "Total Gaji: Rp " + total.toLocaleString("id-ID");
+    }
+  </script>
+</body>
+</html>
