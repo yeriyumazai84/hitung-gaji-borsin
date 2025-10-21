@@ -1,177 +1,242 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login & Daftar - Hitung Gaji Borsin</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f5f7fa;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .box {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            width: 300px;
-            text-align: center;
-        }
-        h2 { margin-bottom: 20px; }
-        input, select, button {
-            width: 100%;
-            padding: 10px;
-            margin: 8px 0;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            font-size: 14px;
-        }
-        button {
-            background-color: #0078D7;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        button:hover { background-color: #005fa3; }
-        .msg { color: red; font-size: 13px; }
-        .toggle-btn { background-color: #555; margin-top: 10px; }
-        .toggle-btn:hover { background-color: #333; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistem Login - Hitung Gaji Borsin</title>
+<style>
+    body { font-family: Arial, sans-serif; background: #f5f7fa; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    .box { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); width: 320px; text-align: center; }
+    h2 { margin-bottom: 20px; }
+    input, button { width: 100%; padding: 10px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; }
+    button { background-color: #0078D7; color: white; border: none; cursor: pointer; font-weight: bold; }
+    button:hover { background-color: #005fa3; }
+    .msg { color: red; font-size: 13px; }
+    .toggle-btn { background-color: #555; margin-top: 10px; }
+    .toggle-btn:hover { background-color: #333; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ccc; padding: 6px; font-size: 13px; text-align: center; }
+    th { background: #eee; }
+</style>
 </head>
 <body>
-    <!-- Login Box -->
-    <div class="box" id="loginBox">
-        <h2>Login Pengguna</h2>
-        <select id="role">
-            <option value="">Pilih Peran</option>
-            <option value="admin">Admin</option>
-            <option value="anggota">Anggota</option>
-            <option value="bos">Bos</option>
-        </select>
-        <input type="text" id="username" placeholder="Nama pengguna">
-        <input type="password" id="password" placeholder="Kata sandi">
-        <button onclick="login()">Masuk</button>
-        <p class="msg" id="message"></p>
-        <button class="toggle-btn" id="registerBtn" onclick="showRegister()" style="display:none;">Daftar User Baru</button>
-    </div>
 
-    <!-- Register Box -->
-    <div class="box" id="registerBox" style="display:none;">
-        <h2>Daftar Pengguna</h2>
-        <select id="regRole">
-            <option value="">Pilih Peran</option>
-            <option value="admin">Admin</option>
-            <option value="anggota">Anggota</option>
-            <option value="bos">Bos</option>
-        </select>
-        <input type="text" id="regUsername" placeholder="Nama pengguna">
-        <input type="password" id="regPassword" placeholder="Kata sandi">
-        <button onclick="register()">Daftar</button>
-        <p class="msg" id="regMessage"></p>
-        <button class="toggle-btn" onclick="showLogin()">Kembali ke Login</button>
-    </div>
+<!-- Login Anggota -->
+<div class="box" id="loginAnggota">
+    <h2>Login Anggota</h2>
+    <input type="text" id="usernameA" placeholder="Nama pengguna">
+    <input type="password" id="passwordA" placeholder="Kata sandi">
+    <button onclick="loginAnggota()">Masuk</button>
+    <p class="msg" id="msgA"></p>
+    <button class="toggle-btn" onclick="showRegister()">Daftar Anggota Baru</button>
+    <button class="toggle-btn" onclick="showAdminLogin()">Login Admin / Bos</button>
+</div>
 
-    <script>
-        // Ambil data users dari localStorage
-        function getUsers() {
-            return JSON.parse(localStorage.getItem('users') || '[]');
+<!-- Login Admin/Bos -->
+<div class="box" id="loginAdmin" style="display:none;">
+    <h2>Login Admin / Bos</h2>
+    <input type="text" id="usernameB" placeholder="Nama pengguna">
+    <input type="password" id="passwordB" placeholder="Kata sandi">
+    <button onclick="loginAdmin()">Masuk</button>
+    <p class="msg" id="msgB"></p>
+    <button class="toggle-btn" onclick="showAnggotaLogin()">Kembali ke Login Anggota</button>
+</div>
+
+<!-- Register Anggota -->
+<div class="box" id="registerBox" style="display:none;">
+    <h2>Daftar Anggota Baru</h2>
+    <input type="text" id="regUsername" placeholder="Nama pengguna">
+    <input type="password" id="regPassword" placeholder="Kata sandi">
+    <button onclick="register()">Daftar</button>
+    <p class="msg" id="regMsg"></p>
+    <button class="toggle-btn" onclick="showAnggotaLogin()">Kembali</button>
+</div>
+
+<!-- Halaman Anggota -->
+<div class="box" id="homeAnggota" style="display:none;">
+    <h2 id="welcomeAnggota"></h2>
+    <button class="toggle-btn" onclick="showEditProfile()">Edit Profil</button>
+    <button class="toggle-btn" style="background-color:red;" onclick="logout()">Logout</button>
+</div>
+
+<!-- Edit Profil Anggota -->
+<div class="box" id="editBox" style="display:none;">
+    <h2>Edit Profil</h2>
+    <input type="text" id="editUsername" placeholder="Username baru">
+    <input type="password" id="editPassword" placeholder="Password baru">
+    <button onclick="updateProfile()">Simpan</button>
+    <p class="msg" id="editMsg"></p>
+    <button class="toggle-btn" onclick="showAnggotaHome()">Kembali</button>
+</div>
+
+<!-- Halaman Admin -->
+<div class="box" id="adminBox" style="display:none;">
+    <h2 id="welcomeAdmin"></h2>
+    <h3>Daftar Anggota Terdaftar:</h3>
+    <table id="anggotaTable">
+        <tr><th>Username</th><th>Password</th></tr>
+    </table>
+    <button class="toggle-btn" style="background-color:red;" onclick="logout()">Logout</button>
+</div>
+
+<script>
+    function getUsers() { return JSON.parse(localStorage.getItem('users') || '[]'); }
+    function saveUsers(users) { localStorage.setItem('users', JSON.stringify(users)); }
+
+    // Inisialisasi user default
+    if (getUsers().length === 0) {
+        saveUsers([
+            { role: "admin", username: "admin", password: "admin123" },
+            { role: "bos", username: "bos", password: "bos123" },
+            { role: "anggota", username: "anggota", password: "anggota123" }
+        ]);
+    }
+
+    let currentUser = null;
+
+    // Login anggota
+    function loginAnggota() {
+        const username = document.getElementById('usernameA').value;
+        const password = document.getElementById('passwordA').value;
+        const msg = document.getElementById('msgA');
+
+        if (!username || !password) {
+            msg.textContent = "Isi semua kolom!";
+            return;
         }
 
-        function saveUsers(users) {
-            localStorage.setItem('users', JSON.stringify(users));
-        }
+        const users = getUsers();
+        const user = users.find(u => u.role === "anggota" && u.username === username && u.password === password);
 
-        function login() {
-            const role = document.getElementById('role').value;
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const msg = document.getElementById('message');
-            const registerBtn = document.getElementById('registerBtn');
-
-            if (!role || !username || !password) {
-                msg.textContent = "Semua kolom wajib diisi!";
-                registerBtn.style.display = "none";
-                return;
-            }
-
-            const users = getUsers();
-            const user = users.find(u => u.role === role && u.username === username && u.password === password);
-
-            if (user) {
-                msg.style.color = "green";
-                msg.textContent = "Login berhasil! Mengarahkan...";
-                
-                // Tampilkan tombol Daftar hanya untuk anggota
-                if (role === "anggota") {
-                    registerBtn.style.display = "block";
-                } else {
-                    registerBtn.style.display = "none";
-                }
-
-                setTimeout(() => {
-                    window.location.href = role + ".html";
-                }, 1000);
-            } else {
-                msg.style.color = "red";
-                msg.textContent = "Login gagal! Periksa kembali data Anda.";
-                registerBtn.style.display = "none";
-            }
-        }
-
-        function register() {
-            const role = document.getElementById('regRole').value;
-            const username = document.getElementById('regUsername').value;
-            const password = document.getElementById('regPassword').value;
-            const msg = document.getElementById('regMessage');
-
-            if (!role || !username || !password) {
-                msg.textContent = "Semua kolom wajib diisi!";
-                return;
-            }
-
-            const users = getUsers();
-            const exists = users.find(u => u.role === role && u.username === username);
-
-            if (exists) {
-                msg.textContent = "Username sudah ada untuk role ini!";
-                return;
-            }
-
-            users.push({ role, username, password });
-            saveUsers(users);
+        if (user) {
+            currentUser = user;
             msg.style.color = "green";
-            msg.textContent = "Daftar berhasil! Silakan login.";
-            setTimeout(() => {
-                showLogin();
-            }, 1000);
+            msg.textContent = "Login berhasil!";
+            setTimeout(() => showAnggotaHome(), 500);
+        } else {
+            msg.style.color = "red";
+            msg.textContent = "Username atau password salah!";
+        }
+    }
+
+    // Login admin/bos
+    function loginAdmin() {
+        const username = document.getElementById('usernameB').value;
+        const password = document.getElementById('passwordB').value;
+        const msg = document.getElementById('msgB');
+
+        const users = getUsers();
+        const user = users.find(u =>
+            (u.role === "admin" || u.role === "bos") &&
+            u.username === username && u.password === password
+        );
+
+        if (user) {
+            currentUser = user;
+            msg.style.color = "green";
+            msg.textContent = "Login berhasil!";
+            setTimeout(() => showAdminHome(), 500);
+        } else {
+            msg.style.color = "red";
+            msg.textContent = "Login gagal!";
+        }
+    }
+
+    // Register anggota
+    function register() {
+        const username = document.getElementById('regUsername').value;
+        const password = document.getElementById('regPassword').value;
+        const msg = document.getElementById('regMsg');
+
+        if (!username || !password) {
+            msg.textContent = "Semua kolom wajib diisi!";
+            return;
         }
 
-        function showRegister() {
-            document.getElementById('loginBox').style.display = 'none';
-            document.getElementById('registerBox').style.display = 'block';
-            document.getElementById('message').textContent = "";
+        const users = getUsers();
+        if (users.some(u => u.role === "anggota" && u.username === username)) {
+            msg.textContent = "Username sudah dipakai!";
+            return;
         }
 
-        function showLogin() {
-            document.getElementById('registerBox').style.display = 'none';
-            document.getElementById('loginBox').style.display = 'block';
-            document.getElementById('regMessage').textContent = "";
+        users.push({ role: "anggota", username, password });
+        saveUsers(users);
+        msg.style.color = "green";
+        msg.textContent = "Pendaftaran berhasil!";
+        setTimeout(showAnggotaLogin, 1000);
+    }
+
+    // Tampilkan halaman anggota
+    function showAnggotaHome() {
+        hideAll();
+        document.getElementById('homeAnggota').style.display = 'block';
+        document.getElementById('welcomeAnggota').textContent = "Selamat datang, " + currentUser.username;
+    }
+
+    // Edit profil anggota
+    function showEditProfile() {
+        hideAll();
+        document.getElementById('editBox').style.display = 'block';
+        document.getElementById('editUsername').value = currentUser.username;
+        document.getElementById('editPassword').value = currentUser.password;
+    }
+
+    function updateProfile() {
+        const newUsername = document.getElementById('editUsername').value;
+        const newPassword = document.getElementById('editPassword').value;
+        const msg = document.getElementById('editMsg');
+
+        if (!newUsername || !newPassword) {
+            msg.textContent = "Kolom tidak boleh kosong!";
+            return;
         }
 
-        // Tambahkan user default pertama kali jika belum ada
-        if (getUsers().length === 0) {
-            const defaultUsers = [
-                { role: "admin", username: "admin", password: "admin123" },
-                { role: "anggota", username: "anggota", password: "anggota123" },
-                { role: "bos", username: "bos", password: "bos123" }
-            ];
-            saveUsers(defaultUsers);
+        const users = getUsers();
+        const exists = users.find(u => u.role === "anggota" && u.username === newUsername && u !== currentUser);
+
+        if (exists) {
+            msg.textContent = "Username sudah digunakan!";
+            return;
         }
-    </script>
+
+        currentUser.username = newUsername;
+        currentUser.password = newPassword;
+        saveUsers(users);
+        msg.style.color = "green";
+        msg.textContent = "Profil berhasil diubah!";
+    }
+
+    // Halaman admin
+    function showAdminHome() {
+        hideAll();
+        document.getElementById('adminBox').style.display = 'block';
+        document.getElementById('welcomeAdmin').textContent = "Halo " + currentUser.role + "!";
+        const users = getUsers().filter(u => u.role === "anggota");
+        const table = document.getElementById('anggotaTable');
+        table.innerHTML = "<tr><th>Username</th><th>Password</th></tr>";
+        users.forEach(u => {
+            const row = `<tr><td>${u.username}</td><td>${u.password}</td></tr>`;
+            table.innerHTML += row;
+        });
+    }
+
+    // Fungsi bantu
+    function hideAll() {
+        ["loginAnggota","loginAdmin","registerBox","homeAnggota","editBox","adminBox"].forEach(id => {
+            document.getElementById(id).style.display = "none";
+        });
+    }
+
+    function showRegister() { hideAll(); document.getElementById('registerBox').style.display = 'block'; }
+    function showAnggotaLogin() { hideAll(); document.getElementById('loginAnggota').style.display = 'block'; }
+    function showAdminLogin() { hideAll(); document.getElementById('loginAdmin').style.display = 'block'; }
+
+    // Logout
+    function logout() {
+        alert("Logout berhasil!");
+        currentUser = null;
+        showAnggotaLogin();
+    }
+</script>
 </body>
 </html>
