@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Anggota - Hitung Gaji Borsin</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f7fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .box {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      width: 320px;
+      text-align: center;
+    }
+    h2 { margin-bottom: 20px; }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+    button {
+      background: #0078D7;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover { background: #005fa3; }
+    .msg { color: red; font-size: 13px; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="box" id="loginBox">
+    <h2>Login Anggota</h2>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Masuk</button>
+    <p class="msg" id="msg"></p>
+  </div>
+
+  <div class="box hidden" id="homeBox">
+    <h2>Halo, <span id="userDisplay"></span></h2>
+    <button onclick="showAdd()">Tambah Anggota</button>
+    <button onclick="showEdit()">Ubah Akun Saya</button>
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <div class="box hidden" id="addBox">
+    <h2>Tambah Anggota Baru</h2>
+    <input type="text" id="newUser" placeholder="Username baru">
+    <input type="password" id="newPass" placeholder="Password baru">
+    <button onclick="addMember()">Simpan</button>
+    <button onclick="showHome()">Kembali</button>
+    <p class="msg" id="addMsg"></p>
+  </div>
+
+  <div class="box hidden" id="editBox">
+    <h2>Ubah Akun</h2>
+    <input type="text" id="editUser" placeholder="Username baru">
+    <input type="password" id="editPass" placeholder="Password baru">
+    <button onclick="saveEdit()">Simpan</button>
+    <button onclick="showHome()">Kembali</button>
+    <p class="msg" id="editMsg"></p>
+  </div>
+
+  <script>
+    if (!localStorage.getItem('users')) {
+      const users = [{ username: "anggota", password: "1234" }];
+      localStorage.setItem('users', JSON.stringify(users));
+    }
+
+    let currentUser = null;
+
+    function getUsers() {
+      return JSON.parse(localStorage.getItem('users')) || [];
+    }
+
+    function saveUsers(users) {
+      localStorage.setItem('users', JSON.stringify(users));
+    }
+
+    function login() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const msg = document.getElementById('msg');
+
+      const users = getUsers();
+      const found = users.find(u => u.username === username && u.password === password);
+
+      if (found) {
+        currentUser = found;
+        document.getElementById('userDisplay').textContent = found.username;
+        document.getElementById('loginBox').classList.add('hidden');
+        document.getElementById('homeBox').classList.remove('hidden');
+        msg.textContent = "";
+      } else {
+        msg.textContent = "Login gagal! Periksa kembali username atau password.";
+      }
+    }
+
+    function showAdd() {
+      document.getElementById('homeBox').classList.add('hidden');
+      document.getElementById('addBox').classList.remove('hidden');
+    }
+
+    function showEdit() {
+      document.getElementById('homeBox').classList.add('hidden');
+      document.getElementById('editBox').classList.remove('hidden');
+      document.getElementById('editUser').value = currentUser.username;
+      document.getElementById('editPass').value = currentUser.password;
+    }
+
+    function showHome() {
+      document.getElementById('addBox').classList.add('hidden');
+      document.getElementById('editBox').classList.add('hidden');
+      document.getElementById('homeBox').classList.remove('hidden');
+    }
+
+    function addMember() {
+      const user = document.getElementById('newUser').value.trim();
+      const pass = document.getElementById('newPass').value.trim();
+      const msg = document.getElementById('addMsg');
+
+      if (!user || !pass) {
+        msg.textContent = "Isi semua kolom!";
+        return;
+      }
+
+      const users = getUsers();
+      if (users.find(u => u.username === user)) {
+        msg.textContent = "Username sudah ada!";
+        return;
+      }
+
+      users.push({ username: user, password: pass });
+      saveUsers(users);
+      msg.style.color = "green";
+      msg.textContent = "Anggota berhasil ditambahkan!";
+      document.getElementById('newUser').value = "";
+      document.getElementById('newPass').value = "";
+    }
+
+    function saveEdit() {
+      const newUser = document.getElementById('editUser').value.trim();
+      const newPass = document.getElementById('editPass').value.trim();
+      const msg = document.getElementById('editMsg');
+      const users = getUsers();
+
+      const index = users.findIndex(u => u.username === currentUser.username);
+      if (index !== -1) {
+        users[index].username = newUser;
+        users[index].password = newPass;
+        saveUsers(users);
+        currentUser = users[index];
+        msg.style.color = "green";
+        msg.textContent = "Akun berhasil diperbarui!";
+      }
+    }
+
+    function logout() {
+      currentUser = null;
+      document.getElementById('homeBox').classList.add('hidden');
+      document.getElementById('loginBox').classList.remove('hidden');
+      document.getElementById('username').value = "";
+      document.getElementById('password').value = "";
+    }
+  </script>
+</body>
+</html>
