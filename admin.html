@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin - Kelola Gaji Borsin</title>
+  <style>
+    :root{--card:#fff;--bg:#f4f7f6;--accent:#34495e;--success:#27ae60;--danger:#e74c3c}
+    body{font-family:Segoe UI,Roboto,Arial;margin:0;background:var(--bg);padding:20px;display:flex;justify-content:center}
+    .wrap{width:100%;max-width:980px}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+    h1{color:var(--accent);margin:0;font-size:1.4rem}
+    .top-actions button{margin-left:8px;padding:8px 12px;border-radius:8px;border:0;cursor:pointer}
+    .card{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.06);margin-bottom:14px}
+    form .row{display:flex;gap:8px;flex-wrap:wrap}
+    input, select{padding:10px;border-radius:8px;border:1px solid #d0d7db;flex:1;min-width:140px}
+    label{font-weight:600;font-size:0.9rem;color:#334}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{padding:8px;border:1px solid #eee;text-align:left;font-size:0.9rem}
+    th{background:#fafafa}
+    .btn{padding:8px 10px;border-radius:8px;border:0;cursor:pointer}
+    .btn-primary{background:#3498db;color:#fff}
+    .btn-danger{background:var(--danger);color:#fff}
+    .small{font-size:0.85rem;color:#666}
+    .totals{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px}
+    .totals .tile{background:#fff;padding:10px;border-radius:8px;min-width:180px;box-shadow:0 3px 8px rgba(0,0,0,0.03)}
+    .actions{display:flex;gap:8px;align-items:center}
+    .link{background:transparent;border:0;color:#3498db;cursor:pointer;text-decoration:underline;padding:0}
+    .empty{color:#999;text-align:center;padding:20px}
+    @media(max-width:600px){.row{flex-direction:column}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Admin — Kelola Data Gaji</h1>
+      <div class="top-actions">
+        <button class="btn btn-primary" onclick="location.href='index.html'">Kembali ke Login</button>
+        <button class="btn" onclick="location.href='anggota.html'">Hal. Anggota</button>
+        <button class="btn" onclick="location.href='bos.html'">Hal. Bos</button>
+      </div>
+    </header>
+
+    <!-- Form tambah / edit -->
+    <div class="card">
+      <label>Tambah / Simpan Data Gaji Karyawan</label>
+      <form id="formData" onsubmit="return simpanData(event)">
+        <div class="row" style="margin-top:8px">
+          <input type="text" id="nama" placeholder="Nama karyawan" required>
+          <select id="role" required>
+            <option value="">Pilih Peran</option>
+            <option value="anggota">Anggota</option>
+            <option value="bos">Bos</option>
+            <option value="lainnya">Lainnya</option>
+          </select>
+          <input type="number" id="upahKotor" placeholder="Upah Kotor (Rp)" min="0" value="0" required>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <input type="number" id="biayaPakan" placeholder="Biaya Pakan (Rp)" min="0" value="0">
+          <input type="number" id="pembayaran" placeholder="Pembayaran/Lain (Rp)" min="0" value="0">
+          <input type="number" id="gajiBersih" placeholder="Gaji Bersih (terhitung otomatis)" readonly>
+        </div>
+
+        <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+          <button class="btn btn-primary" type="submit">Simpan</button>
+          <button class="btn" type="button" onclick="resetForm()">Reset</button>
+          <div class="small" style="margin-left:auto">Data tersimpan di browser (localStorage)</div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Tabel data -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <label>Daftar Karyawan</label>
+        <div class="actions">
+          <button class="btn" onclick="downloadCSV()">Export CSV</button>
+          <button class="btn btn-danger" onclick="kosongkanSemua()" title="Hapus semua data">Hapus Semua</button>
+        </div>
+      </div>
+
+      <div id="tableWrap"></div>
+
+      <div class="totals" id="totalsWrap" style="margin-top:12px"></div>
+    </div>
+  </div>
+
+  <script>
+    // Key localStorage
+    const LS_KEY = 'borsin_gaji_data_v1';
+
+    // Init
+    let editingId = null;
+    document.addEventListener('DOMContentLoaded', () => {
+      // auto hitung gaji saat input berubah
+      ['upahKotor','biayaPakan','pembayaran'].forEach(id => {
+        document.getElementById(id).addEventListener('input', hitungGajiForm);
+      });
+      renderTable();
+    });
+
+    function getData(){
+      try{
+        const raw = localStorage.getItem(LS_KEY);
+        return raw ? JSON.parse(raw) : [];
+      }catch(e){ return [];}
+    }
+    function setData(arr){
+      localStorage.setItem(LS_KEY, JSON.stringify(arr));
+      renderTable();
+    }
+
+    function simpanData(e){
+      e.preventDefault();
+      const nama = document.getElementById('nama').value.trim();
+      const role = document.getElementById('role').value;
+      const upahKotor = Number(document.getElementById('upahKotor').value) || 0;
+      const biayaPakan = Number(document.getElementById('biayaPakan').value) || 0;
+      const pembayaran = Number(document.getElementById('pembayaran').value) || 0;
+      const gajiBersih = upahKotor - (biayaPakan + pembayaran);
+
+      if(!nama || !role){ alert('Nama dan peran wajib diisi'); return false; }
+
+      const arr = getData();
+      if(editingId){
+        // update existing
+        const idx = arr.findIndex(x=>x.id===editingId);
+        if(idx>-1){ arr[idx] = { id: editingId, nama, role, upahKotor, biayaPakan, pembayaran, gajiBersih } }
+        editingId = null;
+      } else {
+        arr.push({ id: Date.now(), nama, role, upahKotor, biayaPakan, pembayaran, gajiBersih });
+      }
+      setData(arr);
+      resetForm();
+      return false;
+    }
+
+    function renderTable(){
+      const arr = getData();
+      const wrap = document.getElementById('tableWrap');
+      if(arr.length===0){
+        wrap.innerHTML = '<div class="empty">Belum ada data. Tambah data gaji karyawan di form di atas.</div>';
+        document.getElementById('totalsWrap').innerHTML = '';
+        return;
+      }
+
+      let html = '<table><thead><tr><th>No</th><th>Nama</th><th>Peran</th><th>Upah Kotor</th><th>Biaya Pakan</th><th>Pembayaran</th><th>Gaji Bersih</th><th>Aksi</th></tr></thead><tbody>';
+      arr.forEach((r,i) => {
+        html += `<tr>
+          <td>${i+1}</td>
+          <td>${escapeHtml(r.nama)}</td>
+          <td>${escapeHtml(r.role)}</td>
+          <td>Rp ${formatNum(r.upahKotor)}</td>
+          <td>Rp ${formatNum(r.biayaPakan)}</td>
+          <td>Rp ${formatNum(r.pembayaran)}</td>
+          <td><strong>Rp ${formatNum(r.gajiBersih)}</strong></td>
+          <td>
+            <button class="btn" onclick="editData(${r.id})">Edit</button>
+            <button class="btn btn-danger" onclick="hapusData(${r.id})">Hapus</button>
+          </td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      wrap.innerHTML = html;
+      renderTotals(arr);
+    }
+
+    function renderTotals(arr){
+      const totalsWrap = document.getElementById('totalsWrap');
+      const totalUpah = arr.reduce((s,x)=>s + (Number(x.upahKotor)||0),0);
+      const totalPakan = arr.reduce((s,x)=>s + (Number(x.biayaPakan)||0),0);
+      const totalPembayaran = arr.reduce((s,x)=>s + (Number(x.pembayaran)||0),0);
+      const totalBersih = arr.reduce((s,x)=>s + (Number(x.gajiBersih)||0),0);
+
+      totalsWrap.innerHTML = `
+        <div class="tile"><div class="small">Total Karyawan</div><div><strong>${arr.length} orang</strong></div></div>
+        <div class="tile"><div class="small">Total Upah Kotor</div><div><strong>Rp ${formatNum(totalUpah)}</strong></div></div>
+        <div class="tile"><div class="small">Total Biaya Pakan</div><div><strong>Rp ${formatNum(totalPakan)}</strong></div></div>
+        <div class="tile"><div class="small">Total Potongan Lain</div><div><strong>Rp ${formatNum(totalPembayaran)}</strong></div></div>
+        <div class="tile"><div class="small">Total Gaji Bersih</div><div><strong style="color:var(--success)">Rp ${formatNum(totalBersih)}</strong></div></div>
+      `;
+    }
+
+    function editData(id){
+      const arr = getData();
+      const item = arr.find(x=>x.id===id);
+      if(!item) return;
+      editingId = id;
+      document.getElementById('nama').value = item.nama;
+      document.getElementById('role').value = item.role;
+      document.getElementById('upahKotor').value = item.upahKotor;
+      document.getElementById('biayaPakan').value = item.biayaPakan;
+      document.getElementById('pembayaran').value = item.pembayaran;
+      document.getElementById('gajiBersih').value = item.gajiBersih;
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    function hapusData(id){
+      if(!confirm('Hapus data ini?')) return;
+      const arr = getData().filter(x=>x.id!==id);
+      setData(arr);
+    }
+
+    function kosongkanSemua(){
+      if(!confirm('Hapus semua data? Tindakan ini tidak bisa dibatalkan.')) return;
+      localStorage.removeItem(LS_KEY);
+      renderTable();
+    }
+
+    function resetForm(){
+      editingId = null;
+      document.getElementById('formData').reset();
+      document.getElementById('gajiBersih').value = '';
+    }
+
+    function hitungGajiForm(){
+      const up = Number(document.getElementById('upahKotor').value) || 0;
+      const pakan = Number(document.getElementById('biayaPakan').value) || 0;
+      const lainnya = Number(document.getElementById('pembayaran').value) || 0;
+      document.getElementById('gajiBersih').value = (up - (pakan + lainnya)) || 0;
+    }
+
+    function formatNum(n){ return Number(n).toLocaleString('id-ID'); }
+    function escapeHtml(s){ return String(s).replace(/[&<>"'`]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','`':'&#96;'})[c]); }
+
+    // Export CSV
+    function downloadCSV(){
+      const arr = getData();
+      if(arr.length===0){ alert('Belum ada data untuk diexport'); return; }
+      const header = ['Nama','Peran','UpahKotor','BiayaPakan','Pembayaran','GajiBersih'];
+      const lines = [header.join(',')];
+      arr.forEach(r => {
+        const row = [escapeForCSV(r.nama), r.role, r.upahKotor, r.biayaPakan, r.pembayaran, r.gajiBersih];
+        lines.push(row.join(','));
+      });
+      const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'data_gaji_borsin.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+    function escapeForCSV(v){ if(v==null) return ''; return '"'+String(v).replace(/"/g,'""')+'"'; }
+
+  </script>
+</body>
+</html>
