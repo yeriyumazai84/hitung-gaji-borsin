@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Hitung Gaji Borsin</title>
+    <title>Login & Daftar - Hitung Gaji Borsin</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,7 +13,7 @@
             align-items: center;
             height: 100vh;
         }
-        .login-box {
+        .box {
             background: white;
             padding: 30px;
             border-radius: 15px;
@@ -21,9 +21,7 @@
             width: 300px;
             text-align: center;
         }
-        h2 {
-            margin-bottom: 20px;
-        }
+        h2 { margin-bottom: 20px; }
         input, select, button {
             width: 100%;
             padding: 10px;
@@ -39,17 +37,14 @@
             cursor: pointer;
             font-weight: bold;
         }
-        button:hover {
-            background-color: #005fa3;
-        }
-        .msg {
-            color: red;
-            font-size: 13px;
-        }
+        button:hover { background-color: #005fa3; }
+        .msg { color: red; font-size: 13px; }
+        .toggle-btn { background-color: #555; margin-top: 10px; }
+        .toggle-btn:hover { background-color: #333; }
     </style>
 </head>
 <body>
-    <div class="login-box">
+    <div class="box" id="loginBox">
         <h2>Login Pengguna</h2>
         <select id="role">
             <option value="">Pilih Peran</option>
@@ -61,9 +56,34 @@
         <input type="password" id="password" placeholder="Kata sandi">
         <button onclick="login()">Masuk</button>
         <p class="msg" id="message"></p>
+        <button class="toggle-btn" onclick="showRegister()">Daftar User Baru</button>
+    </div>
+
+    <div class="box" id="registerBox" style="display:none;">
+        <h2>Daftar Pengguna</h2>
+        <select id="regRole">
+            <option value="">Pilih Peran</option>
+            <option value="admin">Admin</option>
+            <option value="anggota">Anggota</option>
+            <option value="bos">Bos</option>
+        </select>
+        <input type="text" id="regUsername" placeholder="Nama pengguna">
+        <input type="password" id="regPassword" placeholder="Kata sandi">
+        <button onclick="register()">Daftar</button>
+        <p class="msg" id="regMessage"></p>
+        <button class="toggle-btn" onclick="showLogin()">Kembali ke Login</button>
     </div>
 
     <script>
+        // Ambil data users dari localStorage
+        function getUsers() {
+            return JSON.parse(localStorage.getItem('users') || '[]');
+        }
+
+        function saveUsers(users) {
+            localStorage.setItem('users', JSON.stringify(users));
+        }
+
         function login() {
             const role = document.getElementById('role').value;
             const username = document.getElementById('username').value;
@@ -75,16 +95,60 @@
                 return;
             }
 
-            // Contoh login sederhana
-            if (role === "admin" && username === "admin" && password === "1234") {
-                window.location.href = "admin.html";
-            } else if (role === "anggota" && username === "anggota" && password === "1234") {
-                window.location.href = "anggota.html";
-            } else if (role === "bos" && username === "bos" && password === "1234") {
-                window.location.href = "bos.html";
+            const users = getUsers();
+            const user = users.find(u => u.role === role && u.username === username && u.password === password);
+
+            if (user) {
+                msg.style.color = "green";
+                msg.textContent = "Login berhasil! Mengarahkan...";
+                setTimeout(() => {
+                    // arahkan ke halaman sesuai role
+                    window.location.href = role + ".html";
+                }, 1000);
             } else {
+                msg.style.color = "red";
                 msg.textContent = "Login gagal! Periksa kembali data Anda.";
             }
+        }
+
+        function register() {
+            const role = document.getElementById('regRole').value;
+            const username = document.getElementById('regUsername').value;
+            const password = document.getElementById('regPassword').value;
+            const msg = document.getElementById('regMessage');
+
+            if (!role || !username || !password) {
+                msg.textContent = "Semua kolom wajib diisi!";
+                return;
+            }
+
+            const users = getUsers();
+            const exists = users.find(u => u.role === role && u.username === username);
+
+            if (exists) {
+                msg.textContent = "Username sudah ada untuk role ini!";
+                return;
+            }
+
+            users.push({ role, username, password });
+            saveUsers(users);
+            msg.style.color = "green";
+            msg.textContent = "Daftar berhasil! Silakan login.";
+            setTimeout(() => {
+                showLogin();
+            }, 1000);
+        }
+
+        function showRegister() {
+            document.getElementById('loginBox').style.display = 'none';
+            document.getElementById('registerBox').style.display = 'block';
+            document.getElementById('message').textContent = "";
+        }
+
+        function showLogin() {
+            document.getElementById('registerBox').style.display = 'none';
+            document.getElementById('loginBox').style.display = 'block';
+            document.getElementById('regMessage').textContent = "";
         }
     </script>
 </body>
